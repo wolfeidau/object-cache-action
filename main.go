@@ -27,7 +27,8 @@ func main() {
 			"version": version,
 		})
 
-	fmt.Printf("::notice %s\n", cli.Key)
+	fmt.Printf("::notice key=%s\n", cli.Key)
+	fmt.Printf("::notice output=%s\n", cli.GitHubOutput)
 
 	f, err := os.OpenFile(cli.GitHubOutput, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
