@@ -11,6 +11,9 @@ inputs:
   restore-keys:
     description: 'An ordered multiline string listing the prefix-matched keys, that are used for restoring stale cache if no cache hit occurred for key. Note `cache-hit` returns false in this case.'
     required: false
+  endpoint:
+    description: 'The endpoint for the cache object service'
+    required: true
 outputs:
   cache-hit:
     description: 'A boolean value to indicate an exact match was found for the primary key'

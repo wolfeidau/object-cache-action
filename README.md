@@ -1,12 +1,13 @@
 # object cache action
 
-This action is used Cache dependencies and build outputs to improve workflow execution time.
+This action is used to cache dependencies and build outputs with the cache object service to improve workflow execution time.
 
 ### Inputs
 
 * `key` - An explicit key for a cache entry. See [creating a cache key](#creating-a-cache-key).
 * `path` - A list of files, directories, and wildcard patterns to cache and restore. See [`@actions/glob`](https://github.com/actions/toolkit/tree/main/packages/glob) for supported patterns.
 * `restore-keys` - An ordered multiline string listing the prefix-matched keys, that are used for restoring stale cache if no cache hit occurred for key.
+* `endpoint` - The endpoint to use for the cache object service.
 
 ### Outputs
 
