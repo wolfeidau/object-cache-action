@@ -3,43 +3,38 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 
-	"github.com/alecthomas/kong"
+	actions "github.com/sethvargo/go-githubactions"
 )
 
 var (
 	version = "dev"
-
-	cli struct {
-		Debug        bool `help:"Enable debug mode."`
-		Version      kong.VersionFlag
-		Key          string `help:"Key for a cache entry." env:"INPUT_KEY"`
-		Path         string `help:"Path list for a cache entry." env:"INPUT_PATH"`
-		RestoreKeys  string `help:"Restore keys list for a cache entry." env:"INPUT_RESTORE_KEYS"`
-		GitHubOutput string `help:"Path list for a cache entry." env:"GITHUB_OUTPUT" type:"path"`
-	}
 )
 
 func main() {
-	kong.Parse(&cli,
-		kong.Vars{
-			"version": version,
-		})
 
-	fmt.Printf("::notice key=%s\n", cli.Key)
-	fmt.Printf("::notice output=%s\n", cli.GitHubOutput)
-
-	f, err := os.OpenFile(cli.GitHubOutput, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	p, err := getParams()
 	if err != nil {
-		log.Fatalf("failed to open output file: %v", err)
+		log.Fatalf("failed to get params: %v", err)
 	}
 
-	defer f.Close()
+	fmt.Printf("::notice key=%s\n", p.Key)
+	fmt.Printf("::notice path=%s\n", p.Path)
+	fmt.Printf("::notice restore-keys=%s\n", p.RestoreKeys)
 
-	_, err = f.WriteString("true")
-	if err != nil {
-		log.Fatalf("failed to write to output file: %v", err)
-	}
+	actions.SetOutput("cache-hit", "true")
+}
 
+type params struct {
+	Key         string
+	Path        string
+	RestoreKeys string
+}
+
+func getParams() (params, error) {
+	return params{
+		Key:         actions.GetInput("key"),
+		Path:        actions.GetInput("path"),
+		RestoreKeys: actions.GetInput("restore-keys"),
+	}, nil
 }
