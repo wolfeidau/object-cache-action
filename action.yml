@@ -13,7 +13,7 @@ inputs:
     required: false
   endpoint:
     description: 'The endpoint for the cache object service'
-    required: true
+    required: false
 outputs:
   cache-hit:
     description: 'A boolean value to indicate an exact match was found for the primary key'
