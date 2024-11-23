@@ -63,8 +63,6 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          restore-keys: |
-            ${{ runner.os }}-go-
           endpoint: http://localhost:8080
 
       - name: Print Output
