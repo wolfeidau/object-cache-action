@@ -1,43 +1,47 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 
-	actions "github.com/sethvargo/go-githubactions"
+	"github.com/alecthomas/kong"
+	oteltrace "go.opentelemetry.io/otel/trace"
+
+	"github.com/wolfeidau/object-cache-action/internal/commands"
+	"github.com/wolfeidau/object-cache-action/internal/trace"
 )
 
 var (
 	version = "dev"
+	cli     struct {
+		Version kong.VersionFlag
+		Save    commands.SaveCmd    `cmd:"" help:"save files."`
+		Restore commands.RestoreCmd `cmd:"" help:"restore files."`
+	}
 )
 
 func main() {
 
-	p, err := getParams()
+	ctx := context.Background()
+
+	tp, err := trace.NewProvider(ctx, "github.com/wolfeidau/object-cache-service", version)
 	if err != nil {
-		log.Fatalf("failed to get params: %v", err)
+		log.Fatalf("failed to create trace provider: %v", err)
 	}
+	defer func() {
+		_ = tp.Shutdown(ctx)
+	}()
 
-	fmt.Printf("::notice endpoint=%s\n", p.Endpoint)
-	fmt.Printf("::notice key=%s\n", p.Key)
-	fmt.Printf("::notice path=%s\n", p.Path)
-	fmt.Printf("::notice restore-keys=%s\n", p.RestoreKeys)
+	var span oteltrace.Span
+	ctx, span = trace.Start(ctx, "object-cache-service")
+	defer span.End()
 
-	actions.SetOutput("cache-hit", "true")
-}
-
-type params struct {
-	Key         string
-	Path        string
-	RestoreKeys string
-	Endpoint    string
-}
-
-func getParams() (params, error) {
-	return params{
-		Key:         actions.GetInput("key"),
-		Path:        actions.GetInput("path"),
-		RestoreKeys: actions.GetInput("restore-keys"),
-		Endpoint:    actions.GetInput("endpoint"),
-	}, nil
+	cmd := kong.Parse(&cli,
+		kong.Vars{
+			"version": version,
+		},
+		kong.BindTo(ctx, (*context.Context)(nil)))
+	err = cmd.Run(&commands.Globals{Version: version})
+	span.RecordError(err)
+	cmd.FatalIfErrorf(err)
 }

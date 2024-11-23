@@ -28,3 +28,4 @@ runs:
     INPUT_PATH: ${{ inputs.path }}
     INPUT_KEY: ${{ inputs.key }}
     INPUT_RESTORE_KEYS: ${{ inputs.restore-keys }}
+    INPUT_ENDPOINT: ${{ inputs.endpoint }}

@@ -55,9 +55,9 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
-      - name: Test Local Action
-        id: test-action
-        uses: ./
+      - name: Test Save Local Action
+        id: test-save-action
+        uses: ./save
         with:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           path: |
