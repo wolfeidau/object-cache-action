@@ -4,9 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
+	"strings"
 
 	actions "github.com/sethvargo/go-githubactions"
+
+	"github.com/wolfeidau/zipstash/pkg/archive"
+	"github.com/wolfeidau/zipstash/pkg/client"
+	"github.com/wolfeidau/zipstash/pkg/trace"
+	"github.com/wolfeidau/zipstash/pkg/uploader"
 )
 
 type SaveCmd struct {
@@ -15,14 +20,16 @@ type SaveCmd struct {
 	Endpoint string `help:"Endpoint for a cache entry." env:"INPUT_ENDPOINT"`
 }
 
-func (cmd *SaveCmd) Run(ctx context.Context, globals *Globals) error {
+func (c *SaveCmd) Run(ctx context.Context, globals *Globals) error {
+	ctx, span := trace.Start(ctx, "SaveCmd.Run")
+	defer span.End()
 
 	fmt.Println("::notice saving cache")
-	fmt.Printf("::notice endpoint=%s\n", cmd.Endpoint)
-	fmt.Printf("::notice key=%s\n", cmd.Key)
-	fmt.Printf("::notice path=%s\n", cmd.Path)
+	fmt.Printf("::notice endpoint=%s\n", c.Endpoint)
+	fmt.Printf("::notice key=%s\n", c.Key)
+	fmt.Printf("::notice path=%s\n", c.Path)
 
-	if cmd.Endpoint == "http://localhost:8080" {
+	if c.Endpoint == "http://localhost:8080" {
 		return nil
 	}
 
@@ -31,32 +38,81 @@ func (cmd *SaveCmd) Run(ctx context.Context, globals *Globals) error {
 		return fmt.Errorf("failed to get id token: %w", err)
 	}
 
-	cacheURL, err := url.JoinPath(cmd.Endpoint, "cache", cmd.Key)
+	err = c.save(ctx, token)
 	if err != nil {
-		return fmt.Errorf("failed to join path: %w", err)
-	}
-
-	// use the token to make a request to the cache service
-
-	req, err := http.NewRequest("GET", cacheURL, nil)
-	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("User-Agent", fmt.Sprintf("cache-action/%s", globals.Version))
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to make request: %w", err)
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return fmt.Errorf("failed to save cache: %w", err)
 	}
 
 	actions.SetOutput("cache-hit", "true")
 
 	return nil
+}
+
+func (c *SaveCmd) save(ctx context.Context, token string) error {
+	ctx, span := trace.Start(ctx, "SaveCmd.save")
+	defer span.End()
+
+	paths, err := checkPath(c.Path)
+	if err != nil {
+		return fmt.Errorf("failed to check path: %w", err)
+	}
+
+	fileInfo, err := archive.BuildArchive(ctx, paths, c.Key)
+	if err != nil {
+		return fmt.Errorf("failed to build archive: %w", err)
+	}
+
+	cl, err := newClient(c.Endpoint, token)
+
+	if err != nil {
+		return fmt.Errorf("failed to create client: %w", err)
+	}
+
+	createResp, err := cl.CreateCacheEntryWithResponse(ctx, "GitHubActions", client.CreateCacheEntryJSONRequestBody{
+		CacheEntry: client.CacheEntry{
+			Key:         c.Key,
+			Compression: "zip",
+			FileSize:    fileInfo.Size,
+			Sha256sum:   fileInfo.Sha256sum,
+			Paths:       paths,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create cache entry: %w", err)
+	}
+
+	if createResp.StatusCode() != http.StatusCreated {
+		return fmt.Errorf("failed to create cache entry: %s", createResp.JSONDefault.Message)
+	}
+
+	upl := uploader.NewUploader(ctx, fileInfo.ArchivePath, createResp.JSON201.UploadInstructions, 20)
+
+	etags, err := upl.Upload(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to upload: %w", err)
+	}
+
+	updateResp, err := cl.UpdateCacheEntryWithResponse(ctx, "GitHubActions", client.CacheEntryUpdateRequest{
+		Id:             createResp.JSON201.Id,
+		Key:            c.Key,
+		MultipartEtags: etags,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update cache entry: %w", err)
+	}
+
+	if updateResp.StatusCode() != http.StatusOK {
+		return fmt.Errorf("failed to update cache entry: %s", updateResp.JSONDefault.Message)
+	}
+
+	return nil
+}
+
+func checkPath(path string) ([]string, error) {
+	paths := strings.Fields(path)
+	if len(paths) == 0 {
+		return nil, fmt.Errorf("no paths provided")
+	}
+
+	return paths, nil
 }
