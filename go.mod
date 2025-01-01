@@ -5,7 +5,7 @@ go 1.23.4
 require (
 	github.com/alecthomas/kong v1.6.0
 	github.com/sethvargo/go-githubactions v1.3.0
-	github.com/wolfeidau/zipstash v0.0.0-20250101050513-f96ed457f655
+	github.com/wolfeidau/zipstash v0.0.0-20250101104351-4638fb3763b5
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.33.0

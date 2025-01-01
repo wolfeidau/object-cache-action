@@ -90,6 +90,8 @@ github.com/wolfeidau/quickzip v1.0.1-0.20241228090847-e887f2252460 h1:wQlmRdZmP+
 github.com/wolfeidau/quickzip v1.0.1-0.20241228090847-e887f2252460/go.mod h1:XQotphiMhuA6r+3TRoayDtyQC4Tn9kgXnCDG+GBpufA=
 github.com/wolfeidau/zipstash v0.0.0-20250101050513-f96ed457f655 h1:b10V45OErcT1M9Clc60qMaqoxE42PySfkslUEt97MuQ=
 github.com/wolfeidau/zipstash v0.0.0-20250101050513-f96ed457f655/go.mod h1:MeySZwKjWWoG43wzC+hJBncRSfxYRZDxH5cb7vRsVtY=
+github.com/wolfeidau/zipstash v0.0.0-20250101104351-4638fb3763b5 h1:uLEGl9xeNZ2wxoUyY3hJoaLQ0FfilGJJG9qf4+EzpeA=
+github.com/wolfeidau/zipstash v0.0.0-20250101104351-4638fb3763b5/go.mod h1:MeySZwKjWWoG43wzC+hJBncRSfxYRZDxH5cb7vRsVtY=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
 go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0 h1:yd02MEjBdJkG3uabWP9apV+OuWRIXGDuJEUJbOHmCFU=
