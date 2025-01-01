@@ -8,7 +8,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/wolfeidau/object-cache-action/internal/commands"
-	"github.com/wolfeidau/object-cache-action/internal/trace"
+	"github.com/wolfeidau/zipstash/pkg/trace"
 )
 
 var (
@@ -24,7 +24,7 @@ func main() {
 
 	ctx := context.Background()
 
-	tp, err := trace.NewProvider(ctx, "github.com/wolfeidau/object-cache-service", version)
+	tp, err := trace.NewProvider(ctx, "github.com/wolfeidau/object-cache-action", version)
 	if err != nil {
 		log.Fatalf("failed to create trace provider: %v", err)
 	}
