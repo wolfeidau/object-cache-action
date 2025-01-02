@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
-	"log"
+	"os"
 
 	"github.com/alecthomas/kong"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"github.com/wolfeidau/zipstash/pkg/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/wolfeidau/object-cache-action/internal/commands"
-	"github.com/wolfeidau/zipstash/pkg/trace"
 )
 
 var (
@@ -22,11 +24,14 @@ var (
 
 func main() {
 
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr}).
+		With().Caller().Logger()
+
 	ctx := context.Background()
 
 	tp, err := trace.NewProvider(ctx, "github.com/wolfeidau/object-cache-action", version)
 	if err != nil {
-		log.Fatalf("failed to create trace provider: %v", err)
+		log.Fatal().Err(err).Msg("failed to create trace provider")
 	}
 	defer func() {
 		_ = tp.Shutdown(ctx)

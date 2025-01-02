@@ -38,3 +38,12 @@ func SplitLines(s string) []string {
 	}
 	return lines
 }
+
+func checkPath(path string) ([]string, error) {
+	paths := strings.Fields(path)
+	if len(paths) == 0 {
+		return nil, fmt.Errorf("no paths provided")
+	}
+
+	return paths, nil
+}

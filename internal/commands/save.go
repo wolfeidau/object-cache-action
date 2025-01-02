@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	actions "github.com/sethvargo/go-githubactions"
 
@@ -106,13 +105,4 @@ func (c *SaveCmd) save(ctx context.Context, token string) error {
 	}
 
 	return nil
-}
-
-func checkPath(path string) ([]string, error) {
-	paths := strings.Fields(path)
-	if len(paths) == 0 {
-		return nil, fmt.Errorf("no paths provided")
-	}
-
-	return paths, nil
 }

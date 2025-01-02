@@ -1,5 +1,5 @@
-name: 'Save a cache'
-description: 'Save Cache artifacts like dependencies and build outputs to improve workflow execution time'
+name: 'Restore a cache'
+description: 'Restore Cache artifacts like dependencies and build outputs to improve workflow execution time'
 author: 'Mark Wolfe'
 inputs:
   path:
@@ -15,7 +15,7 @@ runs:
   using: docker
   image: ../Dockerfile
   args:
-    - save
+    - restore
   env:
     INPUT_PATH: ${{ inputs.path }}
     INPUT_KEY: ${{ inputs.key }}
